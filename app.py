@@ -21,7 +21,7 @@ db_conn = pyodbc.connect("Driver={ODBC Driver 18 for SQL Server};"
 def get_songs(query):
     query_str = 'SELECT TOP 20 id, name, artists FROM music_data WHERE name LIKE \'%' + query + '%\''
     data = pd.read_sql(query_str, db_conn)
-    return data.to_json(orient='index')
+    return data.to_dict(orient='records')
 
 app = Flask(__name__)
 
