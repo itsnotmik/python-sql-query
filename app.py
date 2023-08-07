@@ -10,11 +10,6 @@ DB_USER = os.environ.get('DB_USER')
 DB_PASS = os.environ.get('DB_PASS')
 DB_DB = os.environ.get('DB_DB')
 
-DB_SERVER = '***REMOVED***,1433'
-DB_USER = '***REMOVED***.edu'
-DB_PASS = '***REMOVED***'
-DB_DB = '***REMOVED***'
-
 db_conn = pyodbc.connect("Driver={ODBC Driver 18 for SQL Server};"
                          "Server=" + DB_SERVER +
                          ";Database=" + DB_DB + 
@@ -26,7 +21,7 @@ db_conn = pyodbc.connect("Driver={ODBC Driver 18 for SQL Server};"
                          "Authentication=ActiveDirectoryPassword")
 
 def get_songs(query):
-    query_str = 'SELECT TOP 20 id, name, artists FROM music_data WHERE name LIKE \'%' + query + '%\''
+    query_str = 'SELECT TOP 20 id, name, artists FROM Songs WHERE name LIKE \'%' + query + '%\''
     data = pd.read_sql(query_str, db_conn)
     return data.to_dict(orient='records')
 
