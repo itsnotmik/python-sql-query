@@ -1,28 +1,38 @@
-from flask import Flask, jsonify
-import pyodbc
 import os
 import pandas as pd
 
-json = []
+from sqlalchemy import create_engine, URL, text
+from flask import Flask, jsonify
 
 DB_SERVER = os.environ.get('DB_SERVER')
 DB_USER = os.environ.get('DB_USER')
 DB_PASS = os.environ.get('DB_PASS')
 DB_DB = os.environ.get('DB_DB')
+DB_PORT = os.environ.get('DB_PORT')
 
-db_conn = pyodbc.connect("Driver={ODBC Driver 18 for SQL Server};"
-                         "Server=" + DB_SERVER +
-                         ";Database=" + DB_DB + 
-                         ";Uid=" + DB_USER +
-                         ";Pwd=" + DB_PASS +
-                         ";Encrypt=yes;" 
-                         "TrustServerCertificate=no;" 
-                         "Connection Timeout=30;" 
-                         "Authentication=ActiveDirectoryPassword")
+#create connection URL
+conn_url = URL.create("mssql+pyodbc",
+                      username=DB_USER,
+                      password=DB_PASS,
+                      host=DB_SERVER,
+                      port=DB_PORT,
+                      database=DB_DB,
+                      query={
+                          'driver': 'ODBC DRIVER 18 for SQL Server',
+                          'TrustServerCertifcate': 'yes',
+                          'authentication': 'ActiveDirectoryPassword'
+                      })
+
+#create SQLAlchemy Engine
+engine = create_engine(conn_url)
 
 def get_songs(query):
-    query_str = 'SELECT TOP 20 id, name, artists FROM Songs WHERE name LIKE \'%' + query + '%\''
-    data = pd.read_sql(query_str, db_conn)
+    query = query.replace('\'', '\'\'')
+    query = query.replace('--', '')
+    query = query.replace(';', '')
+    query_str = text('SELECT TOP 20 id, name, artists FROM Songs WHERE name LIKE %s%s%s' % ('\'%',query,'%\'',))
+
+    data = pd.read_sql(query_str, engine)
     return data.to_dict(orient='records')
 
 app = Flask(__name__)
